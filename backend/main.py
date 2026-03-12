@@ -77,15 +77,33 @@ fish_client = FishAudioClient(base_url=FISH_AUDIO_URL)
 # ---------------------------------------------------------------------------
 
 
+FISH_AUDIO_TTS_PREFIX = "fish-audio:"
+
+
 @app.get("/models")
 def list_models():
-    """Return the list of locally available Ollama models."""
+    """Return Ollama models and Fish-Audio S2 TTS models in a unified list."""
+    models = []
+
+    # Ollama models (text generation)
     try:
         result = ollama.list()
-        models = [m.model for m in result.models]
-        return {"models": models}
-    except Exception as exc:
-        raise HTTPException(status_code=502, detail=f"Could not reach Ollama: {exc}")
+        for m in result.models:
+            models.append({"name": m.model, "type": "llm"})
+    except Exception:
+        pass  # Ollama may be offline — still show TTS models
+
+    # Fish-Audio S2 models (text-to-speech)
+    if fish_client.health():
+        models.append({"name": f"{FISH_AUDIO_TTS_PREFIX}openaudio-s1-mini", "type": "tts"})
+
+    if not models:
+        raise HTTPException(
+            status_code=502,
+            detail="No models available. Ensure Ollama or Fish-Audio S2 is running.",
+        )
+
+    return {"models": models}
 
 
 @app.post("/add-model")
@@ -122,14 +140,47 @@ def add_model(req: AddModelRequest):
 
 @app.post("/generate")
 def generate(req: GenerateRequest):
-    """Generate text with the specified Ollama model and save to the database."""
+    """Generate content with the specified model.
+
+    For Ollama (LLM) models: generates text and returns JSON.
+    For Fish-Audio (TTS) models: generates speech and returns audio bytes.
+    """
+    # ── Fish-Audio TTS model ────────────────────────────────
+    if req.model_name.startswith(FISH_AUDIO_TTS_PREFIX):
+        try:
+            audio_bytes = fish_client.tts(text=req.prompt)
+        except ConnectionError as exc:
+            raise HTTPException(
+                status_code=502,
+                detail=f"Fish-Audio S2 server unreachable: {exc}",
+            )
+        except RuntimeError as exc:
+            raise HTTPException(status_code=500, detail=str(exc))
+
+        # Save to history
+        conn = _get_db()
+        try:
+            conn.execute(
+                "INSERT INTO insights (prompt, response, model_used) VALUES (?, ?, ?)",
+                (req.prompt, "[audio generated]", req.model_name),
+            )
+            conn.commit()
+        finally:
+            conn.close()
+
+        return Response(
+            content=audio_bytes,
+            media_type="audio/wav",
+            headers={"Content-Disposition": 'inline; filename="speech.wav"'},
+        )
+
+    # ── Ollama LLM model ────────────────────────────────────
     try:
         result = ollama.generate(model=req.model_name, prompt=req.prompt)
         response_text = result.response
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Generation failed: {exc}")
 
-    # Persist to SQLite
     conn = _get_db()
     try:
         conn.execute(

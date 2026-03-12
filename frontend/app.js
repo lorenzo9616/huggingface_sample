@@ -28,6 +28,9 @@ function hideStatus() {
 
 /* ── Models ──────────────────────────────────────────────── */
 
+// Map model name → type so the UI can adapt
+const modelTypes = {};
+
 async function loadModels() {
   try {
     const res = await fetch("/models");
@@ -35,6 +38,7 @@ async function loadModels() {
     const data = await res.json();
 
     modelSelect.innerHTML = "";
+    Object.keys(modelTypes).forEach((k) => delete modelTypes[k]);
 
     if (data.models.length === 0) {
       modelSelect.innerHTML = '<option value="">No models found</option>';
@@ -42,17 +46,37 @@ async function loadModels() {
     }
 
     data.models.forEach((m) => {
+      const name = m.name || m;          // handle both object and plain string
+      const type = m.type || "llm";
+      modelTypes[name] = type;
+
       const opt = document.createElement("option");
-      opt.value = m;
-      opt.textContent = m;
+      opt.value = name;
+      opt.textContent = type === "tts" ? `${name}  [TTS]` : name;
       modelSelect.appendChild(opt);
     });
+
+    updateGenerateUI();
   } catch (err) {
     modelSelect.innerHTML =
       '<option value="">Failed to load models</option>';
     console.error("loadModels error:", err);
   }
 }
+
+function getSelectedModelType() {
+  return modelTypes[modelSelect.value] || "llm";
+}
+
+function updateGenerateUI() {
+  const isTTS = getSelectedModelType() === "tts";
+  generateBtn.textContent = isTTS ? "Generate Speech" : "Generate Insight";
+  promptInput.placeholder = isTTS
+    ? "Enter text to speak\u2026 supports tags like [laugh], [whispers], [super happy]"
+    : "Enter your prompt here\u2026";
+}
+
+modelSelect.addEventListener("change", updateGenerateUI);
 
 refreshModelsBtn.addEventListener("click", () => {
   loadModels();
@@ -89,9 +113,13 @@ addModelBtn.addEventListener("click", async () => {
 
 /* ── Generation ──────────────────────────────────────────── */
 
+const audioResponse = document.getElementById("audio-response");
+const audioPlayer = document.getElementById("audio-player");
+
 generateBtn.addEventListener("click", async () => {
   const prompt = promptInput.value.trim();
   const model = modelSelect.value;
+  const isTTS = getSelectedModelType() === "tts";
 
   if (!prompt) return alert("Please enter a prompt.");
   if (!model) return alert("Please select a model first.");
@@ -99,6 +127,7 @@ generateBtn.addEventListener("click", async () => {
   generateBtn.disabled = true;
   generateLoader.hidden = false;
   responseDisplay.hidden = true;
+  audioResponse.hidden = true;
 
   try {
     const res = await fetch("/generate", {
@@ -108,13 +137,25 @@ generateBtn.addEventListener("click", async () => {
     });
 
     if (!res.ok) {
+      // Try to parse JSON error from either response type
       const detail = await res.json().catch(() => ({}));
       throw new Error(detail.detail || res.statusText);
     }
 
-    const data = await res.json();
-    responseText.textContent = data.response;
-    responseDisplay.hidden = false;
+    if (isTTS) {
+      // Response is audio bytes
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      if (audioPlayer.src.startsWith("blob:")) URL.revokeObjectURL(audioPlayer.src);
+      audioPlayer.src = url;
+      audioResponse.hidden = false;
+      audioPlayer.play();
+    } else {
+      // Response is JSON text
+      const data = await res.json();
+      responseText.textContent = data.response;
+      responseDisplay.hidden = false;
+    }
   } catch (err) {
     alert("Generation failed: " + err.message);
   } finally {

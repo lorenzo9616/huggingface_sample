@@ -234,6 +234,7 @@ button:disabled {
   margin-top: 0.75rem;
 }
 
-#tts-player audio {
+#tts-player audio,
+#audio-response audio {
   width: 100%;
 }
