@@ -2,13 +2,20 @@
 
 import sqlite3
 import os
+import sys
 import subprocess
 
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel
 import ollama
+
+# Add fish-audio-s2 to path so we can import the client
+sys.path.insert(
+    0, os.path.join(os.path.dirname(__file__), "..", "fish-audio-s2")
+)
+from fish_audio_client import FishAudioClient
 
 # ---------------------------------------------------------------------------
 # Database helpers
@@ -49,11 +56,20 @@ class GenerateRequest(BaseModel):
     model_name: str
 
 
+class TTSRequest(BaseModel):
+    text: str
+    reference_id: str | None = None
+
+
 # ---------------------------------------------------------------------------
 # App
 # ---------------------------------------------------------------------------
 
 app = FastAPI(title="Local AI Generation App")
+
+# Fish-Audio S2 client — connects to the local Fish-Audio server
+FISH_AUDIO_URL = os.environ.get("FISH_AUDIO_URL", "http://localhost:8080")
+fish_client = FishAudioClient(base_url=FISH_AUDIO_URL)
 
 
 # ---------------------------------------------------------------------------
@@ -143,6 +159,44 @@ def history():
         return {"history": [dict(r) for r in rows]}
     finally:
         conn.close()
+
+
+# ---------------------------------------------------------------------------
+# Fish-Audio S2 TTS endpoints
+# ---------------------------------------------------------------------------
+
+
+@app.get("/tts/health")
+def tts_health():
+    """Check if the Fish-Audio S2 server is reachable."""
+    reachable = fish_client.health()
+    return {"status": "online" if reachable else "offline", "url": FISH_AUDIO_URL}
+
+
+@app.post("/tts")
+def text_to_speech(req: TTSRequest):
+    """Generate speech from text using Fish-Audio S2."""
+    if not req.text.strip():
+        raise HTTPException(status_code=400, detail="text is required")
+
+    try:
+        audio_bytes = fish_client.tts(
+            text=req.text,
+            reference_id=req.reference_id,
+        )
+    except ConnectionError as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Fish-Audio S2 server unreachable: {exc}",
+        )
+    except RuntimeError as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+    return Response(
+        content=audio_bytes,
+        media_type="audio/wav",
+        headers={"Content-Disposition": 'inline; filename="speech.wav"'},
+    )
 
 
 # ---------------------------------------------------------------------------

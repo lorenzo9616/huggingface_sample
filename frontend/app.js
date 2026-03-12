@@ -158,5 +158,84 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
+/* ── Text-to-Speech (Fish-Audio S2) ──────────────────────── */
+
+const ttsInput = document.getElementById("tts-input");
+const ttsBtn = document.getElementById("tts-btn");
+const ttsReadBtn = document.getElementById("tts-read-btn");
+const ttsLoader = document.getElementById("tts-loader");
+const ttsPlayer = document.getElementById("tts-player");
+const ttsAudio = document.getElementById("tts-audio");
+const ttsError = document.getElementById("tts-error");
+const ttsBadge = document.getElementById("tts-badge");
+
+async function checkTTSHealth() {
+  try {
+    const res = await fetch("/tts/health");
+    const data = await res.json();
+    if (data.status === "online") {
+      ttsBadge.textContent = "online";
+      ttsBadge.classList.add("badge-online");
+    } else {
+      ttsBadge.textContent = "offline";
+      ttsBadge.classList.add("badge-offline");
+    }
+  } catch {
+    ttsBadge.textContent = "offline";
+    ttsBadge.classList.add("badge-offline");
+  }
+}
+
+async function synthesize(text) {
+  if (!text.trim()) return alert("Enter some text to speak.");
+
+  ttsBtn.disabled = true;
+  ttsReadBtn.disabled = true;
+  ttsLoader.hidden = false;
+  ttsPlayer.hidden = true;
+  ttsError.hidden = true;
+
+  try {
+    const res = await fetch("/tts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    });
+
+    if (!res.ok) {
+      const detail = await res.json().catch(() => ({}));
+      throw new Error(detail.detail || res.statusText);
+    }
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+
+    // Revoke previous object URL to avoid memory leaks
+    if (ttsAudio.src.startsWith("blob:")) URL.revokeObjectURL(ttsAudio.src);
+
+    ttsAudio.src = url;
+    ttsPlayer.hidden = false;
+    ttsAudio.play();
+  } catch (err) {
+    ttsError.textContent = "TTS failed: " + err.message;
+    ttsError.hidden = false;
+  } finally {
+    ttsBtn.disabled = false;
+    ttsReadBtn.disabled = false;
+    ttsLoader.hidden = true;
+  }
+}
+
+ttsBtn.addEventListener("click", () => {
+  synthesize(ttsInput.value);
+});
+
+ttsReadBtn.addEventListener("click", () => {
+  const lastResponse = responseText.textContent;
+  if (!lastResponse) return alert("Generate a response first.");
+  synthesize(lastResponse);
+});
+
 /* ── Init ────────────────────────────────────────────────── */
 loadModels();
+checkTTSHealth();

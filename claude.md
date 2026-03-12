@@ -10,6 +10,7 @@ This is a **local AI text generation app** that connects to [Ollama](https://oll
 | Frontend | Vanilla HTML / CSS / JS |
 | Database | SQLite                  |
 | AI       | Ollama (local models)   |
+| TTS      | Fish-Audio S2 (local)   |
 
 ## Coding Rules
 
@@ -18,3 +19,4 @@ This is a **local AI text generation app** that connects to [Ollama](https://oll
 3. **Relative API paths** — The frontend must call the backend using relative paths (e.g., `/models`, `/generate`) so the app works behind any reverse proxy or on any port without hard-coded URLs.
 4. **Keep it simple** — Avoid unnecessary abstractions. One `main.py` for the backend, one `index.html` for the frontend.
 5. **SQLite via stdlib** — Use Python's built-in `sqlite3` module. No ORM required.
+6. **Fish-Audio S2 is optional** — The app must work without TTS. The frontend shows an online/offline badge and gracefully handles a missing TTS server. The Fish-Audio S2 server runs as a separate process on port 8080.

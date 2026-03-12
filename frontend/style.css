@@ -207,3 +207,33 @@ button:disabled {
   margin-top: 0.25rem;
   color: #333;
 }
+
+/* ── Badge ───────────────────────────────────────────────── */
+.badge {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 10px;
+  background: #e5e7eb;
+  color: #555;
+  vertical-align: middle;
+  margin-left: 0.4rem;
+}
+
+.badge-online {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.badge-offline {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* ── Audio player ────────────────────────────────────────── */
+#tts-player {
+  margin-top: 0.75rem;
+}
+
+#tts-player audio {
+  width: 100%;
+}

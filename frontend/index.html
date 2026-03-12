@@ -9,7 +9,7 @@
 <body>
   <header>
     <h1>Local AI Generation App</h1>
-    <p class="subtitle">Powered by Ollama &mdash; all inference runs on your machine</p>
+    <p class="subtitle">Powered by Ollama + Fish-Audio S2 &mdash; all inference runs on your machine</p>
   </header>
 
   <main>
@@ -57,6 +57,32 @@
         <h3>Response</h3>
         <pre id="response-text"></pre>
       </div>
+    </section>
+
+    <!-- ── Text-to-Speech (Fish-Audio S2) ────────────────── -->
+    <section id="tts-section" class="card">
+      <h2>Text-to-Speech <span class="badge" id="tts-badge">checking&hellip;</span></h2>
+
+      <textarea
+        id="tts-input"
+        rows="3"
+        placeholder="Enter text to speak&hellip; supports tags like [laugh], [whispers], [super happy]"
+      ></textarea>
+
+      <div class="row">
+        <button id="tts-btn">Speak</button>
+        <button id="tts-read-btn" title="Read the last AI response aloud">Read Response</button>
+      </div>
+
+      <div id="tts-loader" class="loader" hidden>
+        <span class="spinner"></span> Generating speech&hellip;
+      </div>
+
+      <div id="tts-player" hidden>
+        <audio id="tts-audio" controls></audio>
+      </div>
+
+      <div id="tts-error" class="status error" hidden></div>
     </section>
 
     <!-- ── History ──────────────────────────────────────────── -->

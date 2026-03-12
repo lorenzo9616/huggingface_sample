@@ -1,0 +1,7 @@
+# Fish-Audio S2 local artifacts (not committed)
+venv/
+fish-speech/
+checkpoints/*/
+!checkpoints/.gitkeep
+*.pyc
+__pycache__/
