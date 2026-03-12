@@ -48,11 +48,17 @@ async function loadModels() {
     data.models.forEach((m) => {
       const name = m.name || m;          // handle both object and plain string
       const type = m.type || "llm";
+      const status = m.status || "online";
       modelTypes[name] = type;
 
       const opt = document.createElement("option");
       opt.value = name;
-      opt.textContent = type === "tts" ? `${name}  [TTS]` : name;
+      if (type === "tts") {
+        const tag = status === "online" ? "TTS" : "TTS - offline";
+        opt.textContent = `${name}  [${tag}]`;
+      } else {
+        opt.textContent = name;
+      }
       modelSelect.appendChild(opt);
     });
 

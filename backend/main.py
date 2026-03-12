@@ -93,9 +93,15 @@ def list_models():
     except Exception:
         pass  # Ollama may be offline — still show TTS models
 
-    # Fish-Audio S2 models (text-to-speech)
-    if fish_client.health():
-        models.append({"name": f"{FISH_AUDIO_TTS_PREFIX}openaudio-s1-mini", "type": "tts"})
+    # Fish-Audio S2 models (text-to-speech) — always listed so users can
+    # see them in the dropdown. The /generate endpoint gives a clear error
+    # if the Fish-Audio server isn't running when they try to use it.
+    fish_online = fish_client.health()
+    models.append({
+        "name": f"{FISH_AUDIO_TTS_PREFIX}openaudio-s1-mini",
+        "type": "tts",
+        "status": "online" if fish_online else "offline",
+    })
 
     if not models:
         raise HTTPException(
