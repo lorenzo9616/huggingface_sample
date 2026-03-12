@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Local AI Generation App</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header>
+    <h1>Local AI Generation App</h1>
+    <p class="subtitle">Powered by Ollama &mdash; all inference runs on your machine</p>
+  </header>
+
+  <main>
+    <!-- ── Model Management ─────────────────────────────────── -->
+    <section id="model-section" class="card">
+      <h2>Model Management</h2>
+
+      <div class="row">
+        <label for="model-select">Active Model</label>
+        <select id="model-select">
+          <option value="">Loading models&hellip;</option>
+        </select>
+        <button id="refresh-models-btn" title="Refresh model list">&#x21bb;</button>
+      </div>
+
+      <div class="row">
+        <input
+          id="new-model-input"
+          type="text"
+          placeholder="e.g. mistral, llama3, phi3"
+        />
+        <button id="add-model-btn">Add Model</button>
+      </div>
+
+      <div id="model-status" class="status" hidden></div>
+    </section>
+
+    <!-- ── Generation ───────────────────────────────────────── -->
+    <section id="generate-section" class="card">
+      <h2>Generate Insight</h2>
+
+      <textarea
+        id="prompt-input"
+        rows="4"
+        placeholder="Enter your prompt here&hellip;"
+      ></textarea>
+
+      <button id="generate-btn">Generate Insight</button>
+
+      <div id="generate-loader" class="loader" hidden>
+        <span class="spinner"></span> Generating&hellip;
+      </div>
+
+      <div id="response-display" class="response" hidden>
+        <h3>Response</h3>
+        <pre id="response-text"></pre>
+      </div>
+    </section>
+
+    <!-- ── History ──────────────────────────────────────────── -->
+    <section id="history-section" class="card">
+      <h2>History</h2>
+      <button id="load-history-btn">Load History</button>
+      <div id="history-list"></div>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

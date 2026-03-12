@@ -1,0 +1,209 @@
+/* ── Reset & base ────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: #f4f5f7;
+  color: #1a1a1a;
+  line-height: 1.6;
+  padding: 2rem 1rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+header h1 {
+  font-size: 1.8rem;
+}
+
+.subtitle {
+  color: #666;
+  font-size: 0.95rem;
+}
+
+/* ── Cards ───────────────────────────────────────────────── */
+.card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.card h2 {
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+/* ── Rows ────────────────────────────────────────────────── */
+.row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.row label {
+  font-weight: 600;
+  min-width: 100px;
+}
+
+/* ── Inputs & buttons ────────────────────────────────────── */
+select,
+input[type="text"],
+textarea {
+  font: inherit;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  width: 100%;
+}
+
+select {
+  width: auto;
+  flex: 1;
+}
+
+input[type="text"] {
+  flex: 1;
+}
+
+textarea {
+  resize: vertical;
+  margin-bottom: 0.75rem;
+}
+
+button {
+  font: inherit;
+  padding: 0.5rem 1.2rem;
+  border: none;
+  border-radius: 6px;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+button:hover {
+  background: #1d4ed8;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+#refresh-models-btn {
+  padding: 0.5rem 0.7rem;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+/* ── Status / loader ─────────────────────────────────────── */
+.status {
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.status.info {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.status.success {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status.error {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.loader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  color: #555;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 3px solid #ccc;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Response area ───────────────────────────────────────── */
+.response {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.response h3 {
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+}
+
+.response pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.9rem;
+}
+
+/* ── History ─────────────────────────────────────────────── */
+#history-list {
+  margin-top: 1rem;
+}
+
+.history-item {
+  padding: 0.75rem;
+  border-bottom: 1px solid #eee;
+}
+
+.history-item:last-child {
+  border-bottom: none;
+}
+
+.history-item .meta {
+  font-size: 0.8rem;
+  color: #888;
+  margin-bottom: 0.25rem;
+}
+
+.history-item .prompt-text {
+  font-weight: 600;
+}
+
+.history-item .response-text {
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin-top: 0.25rem;
+  color: #333;
+}
